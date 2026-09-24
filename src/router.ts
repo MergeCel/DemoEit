@@ -9,6 +9,7 @@ import AccountsPage from './pages/AccountsPage.vue'
 import TeamPage from './pages/TeamPage.vue'
 import NotificationsPage from './pages/NotificationsPage.vue'
 import SettingsPage from './pages/SettingsPage.vue'
+import DraftsPage from './pages/DraftsPage.vue'
 
 export const router = createRouter({
   history: createWebHashHistory(),
@@ -18,7 +19,8 @@ export const router = createRouter({
     { path: '/dashboard', component: DashboardPage, meta: { title: 'Dashboard', eyebrow: 'Ringkasan performa konten Anda' } },
     { path: '/drive', component: DrivePage, meta: { title: 'Drive', eyebrow: 'Kelola seluruh aset media' } },
     { path: '/composer', component: ComposerPage, meta: { title: 'Buat Post', eyebrow: 'Susun sekali, bagikan ke banyak platform' } },
-    { path: '/composer/:id', component: ComposerPage, meta: { title: 'Edit Jadwal', eyebrow: 'Perbarui post yang belum tayang' } },
+    { path: '/composer/:id', component: ComposerPage, meta: { title: 'Edit Post', eyebrow: 'Lanjutkan konten yang belum tayang' } },
+    { path: '/drafts', component: DraftsPage, meta: { title: 'Draft', eyebrow: 'Lanjutkan konten yang belum selesai' } },
     { path: '/schedule', component: SchedulePage, meta: { title: 'Kalender Konten', eyebrow: 'Rencanakan ritme publikasi' } },
     { path: '/engagement', component: EngagementPage, meta: { title: 'Engagement', eyebrow: 'Pantau performa seluruh konten' } },
     { path: '/engagement/:id', component: PostDetailPage, meta: { title: 'Detail Post', eyebrow: 'Breakdown performa per platform' } },

@@ -23,9 +23,9 @@ export function createSeed(): AppState {
     version: 1,
     activeUserId: 'user-1',
     users: [
-      { id: 'user-1', name: 'Nadia Putri', email: 'nadia@socialsync.id', role: 'Admin', active: true, initials: 'NP' },
-      { id: 'user-2', name: 'Raka Pratama', email: 'raka@socialsync.id', role: 'Editor', active: true, initials: 'RP' },
-      { id: 'user-3', name: 'Maya Anindita', email: 'maya@socialsync.id', role: 'Viewer', active: true, initials: 'MA' },
+      { id: 'user-1', name: 'Nadia Putri', email: 'nadia@socialsync.id', role: 'Admin', active: true, initials: 'NP', passwordTemplate: true },
+      { id: 'user-2', name: 'Raka Pratama', email: 'raka@socialsync.id', role: 'Editor', active: true, initials: 'RP', passwordTemplate: true },
+      { id: 'user-3', name: 'Maya Anindita', email: 'maya@socialsync.id', role: 'Viewer', active: true, initials: 'MA', passwordTemplate: true },
     ],
     folders: [
       { id: 'folder-1', name: 'Kampanye September', parentId: null, createdAt: at(0, 1) },
@@ -53,6 +53,7 @@ export function createSeed(): AppState {
       { id: 'account-2', platform: 'tiktok', accountName: 'SocialSync Creative', handle: '@socialsync.creative', status: 'connected', expiresAt: at(1, 17), followers: 52100 },
       { id: 'account-3', platform: 'facebook', accountName: 'SocialSync Indonesia', handle: 'SocialSync Indonesia', status: 'expired', expiresAt: at(0, 2), followers: 19700 },
     ],
+    driveConnection: { provider: 'google-drive', accountEmail: '', connected: false, connectedAt: null },
     notifications: [
       { id: 'notif-1', type: 'warning', title: 'Koneksi Facebook perlu diperbarui', message: 'Sesi SocialSync Indonesia telah berakhir. Hubungkan kembali agar jadwal tidak terganggu.', read: false, createdAt: at(0, now.getDate(), 8) },
       { id: 'notif-2', type: 'success', title: 'Post berhasil diterbitkan', message: 'Koleksi Marigold telah tayang di Instagram dan TikTok.', read: false, createdAt: at(0, 6, 13) },

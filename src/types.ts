@@ -10,6 +10,14 @@ export interface User {
   role: Role
   active: boolean
   initials: string
+  passwordTemplate: boolean
+}
+
+export interface DriveConnection {
+  provider: 'google-drive'
+  accountEmail: string
+  connected: boolean
+  connectedAt: string | null
 }
 
 export interface Folder {
@@ -102,6 +110,7 @@ export interface AppState {
   media: MediaFile[]
   posts: Post[]
   accounts: SocialAccount[]
+  driveConnection: DriveConnection
   notifications: AppNotification[]
   activities: Activity[]
 }
