@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute, RouterLink, RouterView } from 'vue-router'
-import { Bell, CalendarDays, ChartNoAxesCombined, ChevronDown, Cloud, HardDrive, LayoutDashboard, Menu, Plus, Settings, Share2, Users, X } from 'lucide-vue-next'
+import { Bell, CalendarDays, ChartNoAxesCombined, ChevronDown, Cloud, FileText, HardDrive, LayoutDashboard, Menu, Plus, Settings, Share2, Users, X } from 'lucide-vue-next'
 import { useAppStore } from './stores/app'
 
 const route = useRoute()
@@ -13,6 +13,8 @@ const pageEyebrow = computed(() => route.meta.eyebrow as string ?? '')
 
 const primaryNav = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/composer', label: 'Buat Post', icon: Plus, requiresEdit: true, create: true },
+  { to: '/drafts', label: 'Draft', icon: FileText, requiresEdit: true },
   { to: '/drive', label: 'Drive', icon: HardDrive },
   { to: '/schedule', label: 'Jadwal', icon: CalendarDays },
   { to: '/engagement', label: 'Engagement', icon: ChartNoAxesCombined },
@@ -32,11 +34,11 @@ const adminNav = [
       <button class="sidebar-close" @click="mobileMenu = false"><X /></button>
       <nav class="sidebar-nav">
         <p class="nav-label">Workspace</p>
-        <RouterLink v-for="item in primaryNav" :key="item.to" :to="item.to" @click="mobileMenu = false"><component :is="item.icon" :size="19" />{{ item.label }}</RouterLink>
+        <template v-for="item in primaryNav" :key="item.to"><RouterLink v-if="!item.requiresEdit || !store.isViewer" :to="item.to" :class="{ 'nav-create': item.create }" @click="mobileMenu = false"><component :is="item.icon" :size="19" />{{ item.label }}</RouterLink></template>
         <p class="nav-label nav-label-spaced">Kelola</p>
         <RouterLink v-for="item in adminNav" :key="item.to" :to="item.to" @click="mobileMenu = false"><component :is="item.icon" :size="19" />{{ item.label }}</RouterLink>
       </nav>
-      <div class="sidebar-tip"><span>PROTOTIPE LOKAL</span><strong>Data aman di browser ini</strong><p>Semua interaksi dapat dicoba tanpa terhubung ke API platform.</p></div>
+      <div class="sidebar-tip"><span>MODE DEMO</span><strong>Simulasi lokal aktif</strong><p>Label Demo menandai kontrol pengujian yang tidak tampil pada full launch.</p></div>
       <div class="sidebar-user">
         <div class="avatar">{{ store.activeUser.initials }}</div>
         <div><strong>{{ store.activeUser.name }}</strong><span>{{ store.activeUser.role }}</span></div>
@@ -54,7 +56,7 @@ const adminNav = [
           <div class="profile-switcher">
             <button @click="profileOpen = !profileOpen"><span class="avatar avatar-small">{{ store.activeUser.initials }}</span><span class="profile-copy"><strong>{{ store.activeUser.name }}</strong><small>{{ store.activeUser.role }}</small></span><ChevronDown :size="15" /></button>
             <div v-if="profileOpen" class="profile-menu">
-              <p>Uji tampilan sebagai</p>
+              <p>Demo · uji tampilan sebagai</p>
               <button v-for="user in store.state.users.filter((u) => u.active)" :key="user.id" @click="store.setActiveUser(user.id); profileOpen = false"><span class="avatar avatar-small">{{ user.initials }}</span><span><strong>{{ user.name }}</strong><small>{{ user.role }}</small></span></button>
             </div>
           </div>

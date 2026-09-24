@@ -5,12 +5,20 @@ import type { AppNotification, AppState, ContentType, MediaFile, Platform, Post,
 
 const STORAGE_KEY = 'socialsync:prototype:v1'
 
+function migrateState(state: AppState): AppState {
+  state.users = state.users.map((user) => ({ ...user, passwordTemplate: user.passwordTemplate ?? true }))
+  // The earlier email-only Drive simulation was not real OAuth. Keep it disconnected until a backend owns token exchange.
+  state.driveConnection = { provider: 'google-drive', accountEmail: '', connected: false, connectedAt: null }
+  return state
+}
+
 function loadState(): AppState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return createSeed()
     const parsed = JSON.parse(raw) as AppState
-    return parsed.version === 1 ? parsed : createSeed()
+    if (parsed.version !== 1) return createSeed()
+    return migrateState(parsed)
   } catch {
     return createSeed()
   }
@@ -113,6 +121,7 @@ export const useAppStore = defineStore('app', () => {
     platforms: Platform[]
     scheduledAt: string | null
     settings: Partial<Record<Platform, Record<string, string | boolean>>>
+    asDraft?: boolean
   }) {
     const existing = input.id ? state.value.posts.find((post) => post.id === input.id) : undefined
     const now = new Date().toISOString()
@@ -123,19 +132,28 @@ export const useAppStore = defineStore('app', () => {
       caption: input.caption.trim(),
       hashtags: input.hashtags.trim(),
       mediaIds: [...input.mediaIds],
-      status: input.scheduledAt ? 'scheduled' : 'publishing',
+      status: input.asDraft ? 'draft' : input.scheduledAt ? 'scheduled' : 'publishing',
       scheduledAt: input.scheduledAt,
       createdAt: existing?.createdAt ?? now,
       createdBy: existing?.createdBy ?? activeUser.value.id,
-      platforms: input.platforms.map((platform) => ({ platform, status: input.scheduledAt ? 'pending' : 'processing', settings: input.settings[platform] ?? {} })),
+      platforms: input.platforms.map((platform) => ({ platform, status: input.asDraft || input.scheduledAt ? 'pending' : 'processing', settings: input.settings[platform] ?? {} })),
       metrics: existing?.metrics ?? {},
     }
     if (existing) Object.assign(existing, post)
     else state.value.posts.unshift(post)
-    state.value.activities.unshift({ id: id('activity'), actor: activeUser.value.name, action: input.scheduledAt ? 'menjadwalkan' : 'mengirim untuk publikasi', subject: post.title, createdAt: now })
+    state.value.activities.unshift({ id: id('activity'), actor: activeUser.value.name, action: input.asDraft ? 'menyimpan draft' : input.scheduledAt ? 'menjadwalkan' : 'mengirim untuk publikasi', subject: post.title, createdAt: now })
     persist()
     if (input.scheduledAt) notify('success', 'Post dijadwalkan', `${post.title} masuk ke kalender.`, true)
     return post
+  }
+
+  function deleteDraft(postId: string) {
+    const draft = state.value.posts.find((post) => post.id === postId && post.status === 'draft')
+    if (!draft) return
+    state.value.posts = state.value.posts.filter((post) => post.id !== postId)
+    state.value.activities.unshift({ id: id('activity'), actor: activeUser.value.name, action: 'menghapus draft', subject: draft.title, createdAt: new Date().toISOString() })
+    persist()
+    notify('success', 'Draft dihapus', `${draft.title} telah dihapus.`)
   }
 
   function finishPublishing(postId: string, forcedFailure?: Platform) {
@@ -193,9 +211,9 @@ export const useAppStore = defineStore('app', () => {
     notify('success', 'Akun terhubung', `${accountName} siap digunakan.`)
   }
 
-  function addUser(input: Omit<User, 'id' | 'initials' | 'active'>) {
+  function addUser(input: Omit<User, 'id' | 'initials' | 'active' | 'passwordTemplate'>) {
     const initials = input.name.split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase()
-    state.value.users.push({ ...input, id: id('user'), initials, active: true })
+    state.value.users.push({ ...input, id: id('user'), initials, active: true, passwordTemplate: true })
     persist()
     notify('success', 'Pengguna ditambahkan', `${input.name} mendapat akses sebagai ${input.role}.`)
   }
@@ -225,7 +243,7 @@ export const useAppStore = defineStore('app', () => {
     try {
       const parsed = JSON.parse(await file.text()) as AppState
       if (parsed.version !== 1 || !Array.isArray(parsed.posts)) throw new Error('invalid')
-      state.value = parsed
+      state.value = migrateState(parsed)
       persist()
       notify('success', 'Data berhasil diimpor', 'Workspace dipulihkan dari file JSON.')
     } catch {
@@ -235,7 +253,7 @@ export const useAppStore = defineStore('app', () => {
 
   return {
     state, toast, activeUser, unreadCount, isViewer, isAdmin, setActiveUser, addFolder, renameFolder,
-    deleteFolder, addMedia, renameMedia, moveMedia, deleteMedia, savePost, finishPublishing, cancelPost,
+    deleteFolder, addMedia, renameMedia, moveMedia, deleteMedia, savePost, deleteDraft, finishPublishing, cancelPost,
     markNotification, markAllNotifications, updateAccount, addAccount, addUser, toggleUser, reset,
     exportData, importData, notify,
   }
